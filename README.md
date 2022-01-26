@@ -7,3 +7,5 @@ test
 4. Файлы переменных values to variables, ибо секьюрно. (*.tfvars)
 5. Файлы с оверрайдами локальных настроек (override.tf etc)
 6. Файлы с конфигами командной строки (.terraformrc, terraform.rc)
+
+pycharm main commit note
