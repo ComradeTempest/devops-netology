@@ -40,9 +40,9 @@ done
 4.
 #!/usr/bin/env bash
 addr=(192.168.0.1 173.194.222.113 87.250.250.242)
-while ((1==1))
-do
 for i in "${addr[@]}"
+do
+while ((1==1))
 do
           curl --head http://$i:80
           if (($? !=0))
