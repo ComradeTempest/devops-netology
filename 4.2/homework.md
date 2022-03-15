@@ -114,12 +114,56 @@ Modified Files:
 
 ### Ваш скрипт:
 ```python
-???
+#Писано в ПиЧарме
+import socket
+from time import sleep
+
+counter = 1
+
+objectlist = {'drive.google.com': '', 'mail.google.com': '', 'google.com': ''}
+
+
+def get_objectlist(addr):
+    for host in addr:
+        ip = socket.gethostbyname(host)
+        addr[host] = ip
+    return addr
+
+
+while counter != 0:
+    hostinfo = get_objectlist(objectlist)
+    sleep(10)
+    for host in hostinfo:
+        ip = socket.gethostbyname(host)
+        if ip != hostinfo[host]:
+            print(' [ERROR] ' + str(host) + ' IP mismatch: address ' + hostinfo[host] + ' changed to ' + ip, sep='')
+            hostinfo[host] = ip
+            counter = 0
+        else:
+            print(str(host) + ' ' + ip + ' Healthy ')
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+C:\Users\admin\AppData\Local\Microsoft\WindowsApps\python3.9.exe C:/Users/admin/PycharmProjects/pythonProject/test4.py
+drive.google.com 64.233.161.194 Healthy 
+mail.google.com 142.251.1.18 Healthy 
+google.com 74.125.131.101 Healthy 
+drive.google.com 64.233.161.194 Healthy 
+mail.google.com 142.251.1.18 Healthy 
+google.com 74.125.131.101 Healthy 
+drive.google.com 64.233.161.194 Healthy 
+mail.google.com 142.251.1.18 Healthy 
+google.com 74.125.131.101 Healthy 
+drive.google.com 64.233.161.194 Healthy 
+mail.google.com 142.251.1.18 Healthy 
+google.com 74.125.131.101 Healthy 
+drive.google.com 64.233.161.194 Healthy 
+mail.google.com 142.251.1.18 Healthy 
+google.com 74.125.131.101 Healthy 
+drive.google.com 64.233.161.194 Healthy 
+ [ERROR] mail.google.com IP mismatch: address 142.251.1.18 changed to 173.194.222.18
+google.com 74.125.131.101 Healthy 
 ```
 
 ## Дополнительное задание (со звездочкой*) - необязательно к выполнению
