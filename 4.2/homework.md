@@ -71,12 +71,42 @@ Modified Files:
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import os
+
+#Идём по простому пути. А если планируется использование адреса диры как входного аргумента, 
+#то скрипт переделывается с использованием import argv, проверки длины и if/else по результатам проверки len(argv)
+
+print("Please specify dir path to check and press enter")
+
+git=input()
+
+bash_command = ["cd " + git, "git status"]
+result_os = os.popen(' && '.join(bash_command)).read()
+is_change = False
+print("Modified Files:")
+for result in result_os.split('\n'):
+    if result.find('modified') != -1:
+        prepare_result = result.replace('\tmodified:   ', '')
+        print(git, "/", prepare_result, sep='')
+
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+test@netology:~$ ./gitcheck_adv.py
+Please specify dir path to check and press enter
+/home/test/testgit
+Modified Files:
+/home/test/testgit/test.sh
+/home/test/testgit/test.txt
+test@netology:~$ ./gitcheck_adv.py
+Please specify dir path to check and press enter
+/etc
+fatal: not a git repository (or any of the parent directories): .git
+Modified Files:
+
 ```
 
 ## Обязательная задача 4
