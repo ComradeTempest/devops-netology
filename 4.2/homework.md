@@ -43,12 +43,27 @@ for result in result_os.split('\n'):
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import os
+
+git = "/home/test/testgit"
+bash_command = ["cd " + git, "git status"]
+result_os = os.popen(' && '.join(bash_command)).read()
+is_change = False
+print("Modified Files:")
+for result in result_os.split('\n'):
+    if result.find('modified') != -1:
+        prepare_result = result.replace('\tmodified:   ', '')
+        print(git, "/", prepare_result, sep='')
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+test@netology:~$ ./gitcheck.py
+Modified Files:
+/home/test/testgit/test.sh
+/home/test/testgit/test.txt
 ```
 
 ## Обязательная задача 3
