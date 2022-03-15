@@ -51,6 +51,7 @@ git = "/home/test/testgit"
 bash_command = ["cd " + git, "git status"]
 result_os = os.popen(' && '.join(bash_command)).read()
 is_change = False
+
 print("Modified Files:")
 for result in result_os.split('\n'):
     if result.find('modified') != -1:
@@ -81,10 +82,10 @@ import os
 print("Please specify dir path to check and press enter")
 
 git=input()
-
 bash_command = ["cd " + git, "git status"]
 result_os = os.popen(' && '.join(bash_command)).read()
 is_change = False
+
 print("Modified Files:")
 for result in result_os.split('\n'):
     if result.find('modified') != -1:
