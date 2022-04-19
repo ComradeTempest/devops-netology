@@ -25,7 +25,8 @@ https://hub.docker.com/r/comradetempest/testnginx
     а можно и поставить на виртуалку или физсервак. Всё зависит от архитектуры конвейера, от настроек раннеров и т.д. Реестр ставят в контейнер, это
     тоже почему-то повсеместная практика, которую я, тем не менее, нормально объяснить не могу.
     
- 3. 
+3.
+```text
 test@netology:~$ docker run -t -d -v /home/test/data/:/data/ --name centos centos
 f0bc09b512066dec5a0b617b704345022d376ef8086ee386a0bdfceb0f271d58
 test@netology:~$ docker run -t -d -v /home/test/data/:/data/ --name debian debian
@@ -47,5 +48,5 @@ wsaefefsrgzfgzdthzdthaeth
 # cat test2.txt
 test2
 #
-
+```
 
