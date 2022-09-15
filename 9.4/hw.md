@@ -54,3 +54,10 @@ pipeline {
 
 
 Линк на репу с ролью и дженкинсфайлами: https://github.com/ComradeTempest/vector
+
+АПДЕЙТ
+
+![изображение](https://user-images.githubusercontent.com/98019531/190393317-111202d3-8046-41ad-a8eb-72edfd7726f9.png)
+
+Проверка молекулой завершилась успешно, дело было в хостах.
+
