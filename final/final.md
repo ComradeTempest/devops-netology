@@ -216,31 +216,34 @@ calico_rr
 
 Тащим конфиг себе
 
-	ssh ubuntu@158.160.62.28 && sudo cat /etc/kubernetes/admin.conf
+	ssh ubuntu@158.160.62.28
+	sudo cat /etc/kubernetes/admin.conf
 	
 Копируем всё на нашу консоль управления в ~/.kube/config, подставляя IP мастер-ноды в строчку server
 
 Теперь у нас срабатывает kubectl get pods --all-namespaces
 ```
-NAMESPACE     NAME                                      READY   STATUS    RESTARTS   AGE
-kube-system   calico-kube-controllers-6dfcdfb99-kfkqg   1/1     Running   0          66m
-kube-system   calico-node-4bgbq                         1/1     Running   0          67m
-kube-system   calico-node-8gkhr                         1/1     Running   0          67m
-kube-system   calico-node-csjb6                         1/1     Running   0          67m
-kube-system   coredns-68868dc95b-7gshb                  1/1     Running   0          65m
-kube-system   coredns-68868dc95b-txqjc                  1/1     Running   0          65m
-kube-system   dns-autoscaler-7ccd65764f-lgjgm           1/1     Running   0          65m
-kube-system   kube-apiserver-master                     1/1     Running   1          69m
-kube-system   kube-controller-manager-master            1/1     Running   1          69m
-kube-system   kube-proxy-27g7s                          1/1     Running   0          6m39s
-kube-system   kube-proxy-dfxpx                          1/1     Running   0          6m39s
-kube-system   kube-proxy-jpzrs                          1/1     Running   0          6m39s
-kube-system   kube-scheduler-master                     1/1     Running   1          69m
-kube-system   nginx-proxy-worker1                       1/1     Running   0          66m
-kube-system   nginx-proxy-worker2                       1/1     Running   0          67m
-kube-system   nodelocaldns-dgzg4                        1/1     Running   0          65m
-kube-system   nodelocaldns-gwssf                        1/1     Running   0          65m
-kube-system   nodelocaldns-kvrhq                        1/1     Running   0          65m
+NAMESPACE       NAME                                      READY   STATUS    RESTARTS   AGE
+ingress-nginx   ingress-nginx-controller-2gcdk            1/1     Running   0          19m
+ingress-nginx   ingress-nginx-controller-mv6qf            1/1     Running   0          19m
+kube-system     calico-kube-controllers-6dfcdfb99-9jsp6   1/1     Running   0          19m
+kube-system     calico-node-6rv78                         1/1     Running   0          20m
+kube-system     calico-node-c77pn                         1/1     Running   0          20m
+kube-system     calico-node-zsr2q                         1/1     Running   0          20m
+kube-system     coredns-68868dc95b-28m2g                  1/1     Running   0          18m
+kube-system     coredns-68868dc95b-wkk7z                  1/1     Running   0          18m
+kube-system     dns-autoscaler-7ccd65764f-5llgn           1/1     Running   0          18m
+kube-system     kube-apiserver-master                     1/1     Running   1          22m
+kube-system     kube-controller-manager-master            1/1     Running   1          22m
+kube-system     kube-proxy-pvrlv                          1/1     Running   0          4m13s
+kube-system     kube-proxy-vtxtc                          1/1     Running   0          4m13s
+kube-system     kube-proxy-xgvdh                          1/1     Running   0          4m13s
+kube-system     kube-scheduler-master                     1/1     Running   1          22m
+kube-system     nginx-proxy-worker1                       1/1     Running   0          19m
+kube-system     nginx-proxy-worker2                       1/1     Running   0          19m
+kube-system     nodelocaldns-kh6lc                        1/1     Running   0          18m
+kube-system     nodelocaldns-pdjfs                        1/1     Running   0          18m
+kube-system     nodelocaldns-xvht4                        1/1     Running   0          18m
 ```
 
 ## Создаём приложение для тестирования
@@ -251,7 +254,165 @@ kube-system   nodelocaldns-kvrhq                        1/1     Running   0     
 
 ## Заливаем мониторинг и деплоим наше приложение
 
-TBD
+Для простоты и гармонии возьмём репозиторий kube-prometheus и раскатаем его на кластере.
+
+	git clone https://github.com/prometheus-operator/kube-prometheus.git && kubectl apply --server-side -f kube-prometheus/manifests/setup && \
+	kubectl wait --for condition=Established --all CustomResourceDefinition --namespace=monitoring && \
+	kubectl apply --server-side -f kube-prometheus/manifests/
+	
+В итоге мониторинг раскатывается прекрасно.
+
+```
+ubuntu@final:~$ kubectl get pods -n monitoring
+NAME                                   READY   STATUS    RESTARTS   AGE
+alertmanager-main-0                    2/2     Running   0          60s
+alertmanager-main-1                    2/2     Running   0          60s
+alertmanager-main-2                    2/2     Running   0          60s
+blackbox-exporter-6495c95d8f-7jnxn     3/3     Running   0          80s
+grafana-795fb69cf-h72s4                1/1     Running   0          78s
+kube-state-metrics-fb68f87f9-q64rn     3/3     Running   0          78s
+node-exporter-bfmsn                    2/2     Running   0          76s
+node-exporter-kkn4l                    2/2     Running   0          76s
+node-exporter-nmkf2                    2/2     Running   0          76s
+prometheus-adapter-6b88dfd544-h9hdm    1/1     Running   0          75s
+prometheus-adapter-6b88dfd544-hgn97    1/1     Running   0          75s
+prometheus-k8s-0                       2/2     Running   0          59s
+prometheus-k8s-1                       2/2     Running   0          59s
+prometheus-operator-584495d569-tzrzw   2/2     Running   0          74s
+```
+
+Можно сразу проверить графану:
+
+	kubectl --namespace monitoring port-forward --address="0.0.0.0" svc/grafana 3000
+
+Деплоим NS и наше приложение.
+
+```
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: uselessappns
+```
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uselessnginxapp
+  namespace: uselessappns
+  labels:
+    app: uselessappns
+spec:
+  selector:
+    matchLabels:
+      app: uselessnginxapp
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: uselessnginxapp
+    spec:
+      containers:
+      - name: uselessnginxapp
+        image: comradetempest/uselessnginxapp:1.0.0
+        ports:
+        - containerPort: 80
+          protocol: TCP
+```
+kubectl create -f ./ns.yml && kubectl create -f ./useless.yml
+
+Пишем сервис к приложению, стартуем через kubectl create
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: uselessappservice
+  namespace: uselessappns
+spec:
+  selector:
+    app: uselessnginxapp
+  ports:
+    - name: uselessport
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+```
+
+Проверяем наличие сервисов графаны и нашей приложухи.
+```
+ubuntu@final:~/k8s$ kubectl get service -A
+NAMESPACE      NAME                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                        AGE
+default        kubernetes              ClusterIP   10.233.0.1      <none>        443/TCP                        46m
+kube-system    coredns                 ClusterIP   10.233.0.3      <none>        53/UDP,53/TCP,9153/TCP         42m
+kube-system    kubelet                 ClusterIP   None            <none>        10250/TCP,10255/TCP,4194/TCP   22m
+monitoring     alertmanager-main       ClusterIP   10.233.5.116    <none>        9093/TCP,8080/TCP              22m
+monitoring     alertmanager-operated   ClusterIP   None            <none>        9093/TCP,9094/TCP,9094/UDP     22m
+monitoring     blackbox-exporter       ClusterIP   10.233.57.6     <none>        9115/TCP,19115/TCP             22m
+monitoring     grafana                 ClusterIP   10.233.44.159   <none>        3000/TCP                       22m
+monitoring     kube-state-metrics      ClusterIP   None            <none>        8443/TCP,9443/TCP              22m
+monitoring     node-exporter           ClusterIP   None            <none>        9100/TCP                       22m
+monitoring     prometheus-adapter      ClusterIP   10.233.46.108   <none>        443/TCP                        22m
+monitoring     prometheus-k8s          ClusterIP   10.233.39.34    <none>        9090/TCP,8080/TCP              22m
+monitoring     prometheus-operated     ClusterIP   None            <none>        9090/TCP                       22m
+monitoring     prometheus-operator     ClusterIP   None            <none>        8443/TCP                       22m
+uselessappns   uselessappservice       ClusterIP   10.233.7.0      <none>        8080/TCP                       78s
+```
+
+Пишем ингресс для нашего приложения
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uselessappingress
+  namespace: uselessappns
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - http:
+      paths:
+      - path: "/index.html"
+        pathType: Prefix
+        backend:
+          service:
+            name: uselessappservice
+            port:
+              name: uselessport
+```
+И пишем ингресс для графаны
+
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafanaingress
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 9.1.4
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+```
+
+Проверяем и имеем, что на 80 порту внезапно торчит графана, а с префиксом имеем наше приложение. Чудеса.
+
+### ДОПИЛИТЬ АТЛАНТИС
 
 ## Пилим CI/CD
 
