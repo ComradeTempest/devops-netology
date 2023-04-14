@@ -410,13 +410,92 @@ spec:
               number: 3000
 ```
 
-Проверяем и имеем, что на 80 порту внезапно торчит графана, а с префиксом имеем наше приложение. Чудеса.
+Проверяем и имеем, что на 80 порту торчит графана, а с префиксом наше приложение. Чудеса.
 
-### ДОПИЛИТЬ АТЛАНТИС
+Делаем атлантис хелмом для разнообразия.
+
+```
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+kubectl create ns atlantis
+kubectl config set-context $(kubectl config current-context) --namespace=atlantis
+helm repo add stable https://charts.helm.sh/stable && helm repo update
+
+helm upgrade --install atlantis stable/atlantis --version 3.12.2 \
+  --set=github.user=ComradeTempest \
+  --set=github.token=XXX \
+  --set=github.secret=XXX \
+  --set=service.type=ClusterIP \
+  --set=ingress.enabled=false \
+  --set=orgWhitelist="github.com/ComradeTempest/*"
+
+```
 
 ## Пилим CI/CD
 
-TBD
+Будем увязывать в одно наш кластер, гитлаб и докерхаб.
+
+Для опыта разворачиваем локально композом гитлаб и раннер к нему.
+
+```
+networks:
+  gitlab-network:
+    driver: bridge
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    ports:
+      - 80:80
+      - 5050:5050
+    networks:
+      - gitlab-network
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localip'
+  runner:
+    image: gitlab/gitlab-runner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gitlab-network
+    environment:
+      CI_SERVER_URL: http://localip
+```
+Приводим гитлаб в порядок, регаем раннер для проектов с тегом docker c соответственным экзекутором (перепуливаем в контейнер с раннером команду ниже).
+
+```
+gitlab-runner register -n \
+  --url http://localip \
+  --registration-token gitlabtoken \
+  --executor docker \
+  --description "Final Docker Runner" \
+  --docker-image "docker:20.10.16" \
+  --docker-privileged \
+  --docker-volumes "/certs/client"
+```
+Ставим через настройки раннера тег docker и на всякий случай рестартим раннер, если сразу не подцепится.
+
+Заливаем наш проект, проставляем вариабли для нашего прекрасного пайплайна.
+
+Пилим первый кусочек пайплайна — он будет билдить образ и пушить его в докерхаб.
+
+```
+stages:
+  - build
+image: docker:20.10.16
+build: 
+  stage: build
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - docker push "$CI_REGISTRY_IMAGE"
+  tags:
+    - docker
+  ```
+  
+### Доделать деплой по тегу.
 
 ## Наводим порядок и раскладываем нужное в репозитории
 
