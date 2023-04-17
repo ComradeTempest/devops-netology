@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uselessappservice
+  namespace: uselessappns
+spec:
+  selector:
+    app: uselessnginxapp
+  ports:
+    - name: uselessport
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

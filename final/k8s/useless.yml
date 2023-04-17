@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uselessnginxapp
+  namespace: uselessappns
+  labels:
+    app: uselessappns
+spec:
+  selector:
+    matchLabels:
+      app: uselessnginxapp
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: uselessnginxapp
+    spec:
+      containers:
+      - name: uselessnginxapp
+        image: comradetempest/uselessnginxapp:1.0.0
+        ports:
+        - containerPort: 80
+          protocol: TCP
