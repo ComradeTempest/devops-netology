@@ -445,7 +445,14 @@ helm upgrade --install atlantis stable/atlantis --version 3.12.2 \
   --set=ingress.enabled=false \
   --set=orgWhitelist="github.com/ComradeTempest/*"
 ```
-Только не работает. Надо допиливать.
+Выводим его наружу с помощью добавления службы LoadBalancer
+
+![изображение](https://user-images.githubusercontent.com/98019531/232771984-d2ac39aa-a6e8-4303-a6fe-12abf8c23f3a.png)
+
+Делаем тестовый бранч в репе atlantis, заливаем туда тестовый косячный tf-файлик, делаем пулл-реквест с комментом atlantis plan. Атлантис проверил, нашёл косяки.
+
+![изображение](https://user-images.githubusercontent.com/98019531/232773025-0f687bfa-3b5f-4968-b4a8-854fd58c9981.png)
+
 
 Ожидаемый результат:
 
@@ -586,9 +593,7 @@ deploy:
 
 ![изображение](https://user-images.githubusercontent.com/98019531/232746987-6bdfb8b9-49a6-49b9-a8a7-9054567ec75f.png)
 
-## Наводим порядок и раскладываем нужное в репозитории
 
-TBD
 
 
 
