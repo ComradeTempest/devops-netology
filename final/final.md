@@ -591,7 +591,8 @@ deploy:
 
 ![изображение](https://user-images.githubusercontent.com/98019531/232741608-e890bdf6-2cb7-40ee-82d0-5e1a48efb3f2.png)
 
-![изображение](https://user-images.githubusercontent.com/98019531/232746987-6bdfb8b9-49a6-49b9-a8a7-9054567ec75f.png)
+![изображение](https://user-images.githubusercontent.com/98019531/232776196-1bff8fc2-14d6-4260-a26f-76ec177042d7.png)
+
 
 
 
