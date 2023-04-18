@@ -497,32 +497,75 @@ gitlab-runner register -n \
   --registration-token gitlabtoken \
   --executor docker \
   --description "Final Docker Runner" \
-  --docker-image "docker:20.10.16" \
+  --docker-image="docker:dind" \ 
   --docker-privileged \
-  --docker-volumes "/certs/client"
+  --docker-volumes "/var/run/docker.sock:/var/run/docker.sock"
 ```
 Ставим через настройки раннера тег docker и на всякий случай рестартим раннер, если сразу не подцепится.
 
-Заливаем наш проект, проставляем вариабли для нашего прекрасного пайплайна (не защищённые и не стандартные).
+Заливаем наш проект, проставляем вариабли для нашего прекрасного пайплайна (не защищённые и не стандартные, кубконфиг ФАЙЛОМ).
 
-Пилим первый кусочек пайплайна — он будет билдить образ и пушить его в докерхаб.
+![изображение](https://user-images.githubusercontent.com/98019531/232742894-9413df81-4130-4579-9c97-ab924ac003e8.png)
+
+Пилим пайплайн.
 
 ```
 stages:
   - build
-image: docker:20.10.16
+  - deploy
+
+
 build: 
   stage: build
-  services:
-    - docker:20.10.16-dind
   before_script:
+    - docker logout
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-    - docker push "$CI_REGISTRY_IMAGE"
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        tag=""
+        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+      else
+        tag=":$CI_COMMIT_REF_SLUG"
+        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
+      fi
+      if [[ $CI_COMMIT_TAG != "" ]]; then
+        tag=":$CI_COMMIT_TAG"
+        echo "Running on tag '$CI_COMMIT_TAG': tag = $tag"
+      fi      
+    - docker build --pull -t "$CI_REGISTRY_IMAGE$tag" .
+    - docker push "$CI_REGISTRY_IMAGE$tag"
   tags:
     - docker
+
+deploy:
+  stage: deploy
+  image: 
+    name: alpine/helm:latest
+    entrypoint: ["/bin/sh", "-c"]
+#  stage: deploy на докеровском образе, как вариант
+#  before_script:
+#    - apk add --no-cache curl
+#    - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | /bin/sh
+  tags:
+    - docker
+  environment:
+    name: production
+  script:
+    - |
+      if [[ $CI_COMMIT_TAG != "" ]]; then
+        tag="$CI_COMMIT_TAG"
+        echo "Running on tag '$CI_COMMIT_TAG': tag = $tag"
+      fi
+    - helm upgrade --install uselessnginxapp  helm/uselessnginxapp --set "image.tag=$tag" --kubeconfig=$KUBECONFIG
+  only:
+    - tags
+  except:
+    - branches
+
   ```
+
+Потом прикрепляем кластер кубера, делаем в его настройках интеграцию, делаем environment production.
 
 Ожидаемый результат:
 
@@ -534,10 +577,12 @@ build:
 
 ![изображение](https://user-images.githubusercontent.com/98019531/232394878-41311da0-32e3-4a87-a70f-39b6ca80c5d1.png)
 
-- [ ] При создании тега (например, v1.0.0) происходит сборка и отправка с соответствующим label в регистр, а также деплой соответствующего Docker образа в кластер Kubernetes.
+- [x] При создании тега (например, v1.0.0) происходит сборка и отправка с соответствующим label в регистр, а также деплой соответствующего Docker образа в кластер Kubernetes.
 
+![изображение](https://user-images.githubusercontent.com/98019531/232741489-f9e14d3d-f11a-4b79-a706-c376d1533b2e.png)
 
-### Доделать деплой по тегу.
+![изображение](https://user-images.githubusercontent.com/98019531/232741608-e890bdf6-2cb7-40ee-82d0-5e1a48efb3f2.png)
+
 
 ## Наводим порядок и раскладываем нужное в репозитории
 
