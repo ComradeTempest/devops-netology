@@ -444,8 +444,9 @@ helm upgrade --install atlantis stable/atlantis --version 3.12.2 \
   --set=service.type=ClusterIP \
   --set=ingress.enabled=false \
   --set=orgWhitelist="github.com/ComradeTempest/*"
-
 ```
+Только не работает. Надо допиливать.
+
 Ожидаемый результат:
 
 - [x] [Git репозиторий с конфигурационными файлами для настройки Kubernetes.](https://github.com/ComradeTempest/devops-netology/tree/main/final/k8s)
@@ -461,7 +462,7 @@ helm upgrade --install atlantis stable/atlantis --version 3.12.2 \
 
 ## Пилим CI/CD
 
-Из-за практических соображений и рабочих потребностей будем увязывать в одно наш кластер, гитлаб и докерхаб.
+Из-за практических соображений и рабочих потребностей будем увязывать в одно наш кластер, гитлаб и докерхаб. Деплоить будем хелмом, ему проще передать новый тег.
 
 Для опыта разворачиваем локально композом гитлаб и раннер к нему.
 
@@ -543,7 +544,7 @@ deploy:
   image: 
     name: alpine/helm:latest
     entrypoint: ["/bin/sh", "-c"]
-#  stage: deploy на докеровском образе, как вариант
+#  stage: deploy на докеровском образе, как вариант, для альпин-хелм невалидно
 #  before_script:
 #    - apk add --no-cache curl
 #    - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | /bin/sh
@@ -583,9 +584,13 @@ deploy:
 
 ![изображение](https://user-images.githubusercontent.com/98019531/232741608-e890bdf6-2cb7-40ee-82d0-5e1a48efb3f2.png)
 
+![изображение](https://user-images.githubusercontent.com/98019531/232746987-6bdfb8b9-49a6-49b9-a8a7-9054567ec75f.png)
 
 ## Наводим порядок и раскладываем нужное в репозитории
 
 TBD
+
+
+
 
 
